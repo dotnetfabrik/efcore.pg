@@ -2,7 +2,7 @@
   <PropertyGroup>
     <AssemblyName>Npgsql.EntityFrameworkCore.PostgreSQL.NetTopologySuite</AssemblyName>
     <RootNamespace>Npgsql.EntityFrameworkCore.PostgreSQL.NetTopologySuite</RootNamespace>
-    <TargetFramework>net6.0</TargetFramework>
+    <TargetFrameworks>net6.0;net7.0</TargetFrameworks>
     <TargetFrameworks Condition="'$(DeveloperBuild)' == 'True'">net7.0</TargetFrameworks>
 
     <Authors>Shay Rojansky</Authors>

@@ -1,14 +1,15 @@
-﻿Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 15
-VisualStudioVersion = 15.0.27130.2026
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.4.33122.133
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{4A5A60DD-41B6-40BF-B677-227A921ECCC8}"
 	ProjectSection(SolutionItems) = preProject
-		Npgsql.snk = Npgsql.snk
 		Directory.Build.props = Directory.Build.props
 		Directory.Packages.props = Directory.Packages.props
-		README.md = README.md
+		Npgsql.snk = Npgsql.snk
 		NuGet.config = NuGet.config
+		README.md = README.md
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{8537E50E-CF7F-49CB-B4EF-3E2A1B11F050}"
@@ -25,14 +26,25 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "EFCore.PG.NodaTime.Function
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "EFCore.PG.NodaTime", "src\EFCore.PG.NodaTime\EFCore.PG.NodaTime.csproj", "{77F0608F-6D0C-481C-9108-D5176E2EAD69}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EFCore.PG.NTS", "src\EFCore.PG.NTS\EFCore.PG.NTS.csproj", "{D7106D61-C7CA-4005-B31F-43281BB397AD}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "EFCore.PG.NTS", "src\EFCore.PG.NTS\EFCore.PG.NTS.csproj", "{D7106D61-C7CA-4005-B31F-43281BB397AD}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Github", "Github", "{26203F54-A3C1-43AD-A101-8F589D2D67AD}"
 	ProjectSection(SolutionItems) = preProject
 		.github\workflows\build.yml = .github\workflows\build.yml
-		.github\dependabot.yml = .github\dependabot.yml
 		.github\workflows\codeql-analysis.yml = .github\workflows\codeql-analysis.yml
+		.github\dependabot.yml = .github\dependabot.yml
 	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "cross-solution-import", "cross-solution-import", "{8DCE576A-8BB2-48D9-BBA0-1ADF734B1456}"
+	ProjectSection(SolutionItems) = preProject
+		..\npgsql\Directory.Build.props = ..\npgsql\Directory.Build.props
+	EndProjectSection
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Npgsql.SourceGenerators", "..\npgsql\src\Npgsql.SourceGenerators\Npgsql.SourceGenerators.csproj", "{20E245E1-C457-4366-993E-E6E5C0D8993C}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Npgsql", "..\npgsql\src\Npgsql\Npgsql.csproj", "{E813C4B1-D40C-475F-8379-D4F9390BF8BE}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Npgsql.Tests", "..\npgsql\test\Npgsql.Tests\Npgsql.Tests.csproj", "{03CA30A6-6E32-49EF-8B78-AFAFF311659B}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -104,6 +116,42 @@ Global
 		{D7106D61-C7CA-4005-B31F-43281BB397AD}.Release|x64.Build.0 = Release|Any CPU
 		{D7106D61-C7CA-4005-B31F-43281BB397AD}.Release|x86.ActiveCfg = Release|Any CPU
 		{D7106D61-C7CA-4005-B31F-43281BB397AD}.Release|x86.Build.0 = Release|Any CPU
+		{20E245E1-C457-4366-993E-E6E5C0D8993C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{20E245E1-C457-4366-993E-E6E5C0D8993C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{20E245E1-C457-4366-993E-E6E5C0D8993C}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{20E245E1-C457-4366-993E-E6E5C0D8993C}.Debug|x64.Build.0 = Debug|Any CPU
+		{20E245E1-C457-4366-993E-E6E5C0D8993C}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{20E245E1-C457-4366-993E-E6E5C0D8993C}.Debug|x86.Build.0 = Debug|Any CPU
+		{20E245E1-C457-4366-993E-E6E5C0D8993C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{20E245E1-C457-4366-993E-E6E5C0D8993C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{20E245E1-C457-4366-993E-E6E5C0D8993C}.Release|x64.ActiveCfg = Release|Any CPU
+		{20E245E1-C457-4366-993E-E6E5C0D8993C}.Release|x64.Build.0 = Release|Any CPU
+		{20E245E1-C457-4366-993E-E6E5C0D8993C}.Release|x86.ActiveCfg = Release|Any CPU
+		{20E245E1-C457-4366-993E-E6E5C0D8993C}.Release|x86.Build.0 = Release|Any CPU
+		{E813C4B1-D40C-475F-8379-D4F9390BF8BE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E813C4B1-D40C-475F-8379-D4F9390BF8BE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E813C4B1-D40C-475F-8379-D4F9390BF8BE}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{E813C4B1-D40C-475F-8379-D4F9390BF8BE}.Debug|x64.Build.0 = Debug|Any CPU
+		{E813C4B1-D40C-475F-8379-D4F9390BF8BE}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{E813C4B1-D40C-475F-8379-D4F9390BF8BE}.Debug|x86.Build.0 = Debug|Any CPU
+		{E813C4B1-D40C-475F-8379-D4F9390BF8BE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E813C4B1-D40C-475F-8379-D4F9390BF8BE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E813C4B1-D40C-475F-8379-D4F9390BF8BE}.Release|x64.ActiveCfg = Release|Any CPU
+		{E813C4B1-D40C-475F-8379-D4F9390BF8BE}.Release|x64.Build.0 = Release|Any CPU
+		{E813C4B1-D40C-475F-8379-D4F9390BF8BE}.Release|x86.ActiveCfg = Release|Any CPU
+		{E813C4B1-D40C-475F-8379-D4F9390BF8BE}.Release|x86.Build.0 = Release|Any CPU
+		{03CA30A6-6E32-49EF-8B78-AFAFF311659B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{03CA30A6-6E32-49EF-8B78-AFAFF311659B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{03CA30A6-6E32-49EF-8B78-AFAFF311659B}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{03CA30A6-6E32-49EF-8B78-AFAFF311659B}.Debug|x64.Build.0 = Debug|Any CPU
+		{03CA30A6-6E32-49EF-8B78-AFAFF311659B}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{03CA30A6-6E32-49EF-8B78-AFAFF311659B}.Debug|x86.Build.0 = Debug|Any CPU
+		{03CA30A6-6E32-49EF-8B78-AFAFF311659B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{03CA30A6-6E32-49EF-8B78-AFAFF311659B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{03CA30A6-6E32-49EF-8B78-AFAFF311659B}.Release|x64.ActiveCfg = Release|Any CPU
+		{03CA30A6-6E32-49EF-8B78-AFAFF311659B}.Release|x64.Build.0 = Release|Any CPU
+		{03CA30A6-6E32-49EF-8B78-AFAFF311659B}.Release|x86.ActiveCfg = Release|Any CPU
+		{03CA30A6-6E32-49EF-8B78-AFAFF311659B}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -116,6 +164,9 @@ Global
 		{77F0608F-6D0C-481C-9108-D5176E2EAD69} = {8537E50E-CF7F-49CB-B4EF-3E2A1B11F050}
 		{D7106D61-C7CA-4005-B31F-43281BB397AD} = {8537E50E-CF7F-49CB-B4EF-3E2A1B11F050}
 		{26203F54-A3C1-43AD-A101-8F589D2D67AD} = {4A5A60DD-41B6-40BF-B677-227A921ECCC8}
+		{20E245E1-C457-4366-993E-E6E5C0D8993C} = {8DCE576A-8BB2-48D9-BBA0-1ADF734B1456}
+		{E813C4B1-D40C-475F-8379-D4F9390BF8BE} = {8DCE576A-8BB2-48D9-BBA0-1ADF734B1456}
+		{03CA30A6-6E32-49EF-8B78-AFAFF311659B} = {8DCE576A-8BB2-48D9-BBA0-1ADF734B1456}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {F4EAAE6D-758C-4184-9D8C-7113384B61A8}

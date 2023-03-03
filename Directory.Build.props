@@ -18,6 +18,10 @@
     <PackageLicenseExpression>PostgreSQL</PackageLicenseExpression>
     <PackageProjectUrl>https://github.com/npgsql/efcore.pg</PackageProjectUrl>
     <PackageIcon>postgresql.png</PackageIcon>
+
+    <DeveloperBuild>True</DeveloperBuild>
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>embedded</DebugType>
   </PropertyGroup>
 
   <ItemGroup>
