@@ -1,3 +1,4 @@
+using System.Data.Common;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Diagnostics.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.Internal;

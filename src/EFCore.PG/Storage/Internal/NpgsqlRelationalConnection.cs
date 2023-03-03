@@ -34,31 +34,42 @@ public class NpgsqlRelationalConnection : RelationalConnection, INpgsqlRelationa
     ///     any release. You should only use it directly in your code with extreme caution and knowing that
     ///     doing so can result in application failures when updating to a new Entity Framework Core release.
     /// </summary>
-    public NpgsqlRelationalConnection(RelationalConnectionDependencies dependencies)
+    public NpgsqlRelationalConnection(RelationalConnectionDependencies dependencies, INpgsqlSingletonOptions options)
+        : this(dependencies, options.DataSource)
+    {
+    }
+
+    /// <summary>
+    ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
+    ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
+    ///     any release. You should only use it directly in your code with extreme caution and knowing that
+    ///     doing so can result in application failures when updating to a new Entity Framework Core release.
+    /// </summary>
+    protected NpgsqlRelationalConnection(RelationalConnectionDependencies dependencies, DbDataSource? dataSource)
         : base(dependencies)
     {
-        var npgsqlOptions = dependencies.ContextOptions.Extensions.OfType<NpgsqlOptionsExtension>().FirstOrDefault();
-
-        if (npgsqlOptions is not null)
+        if (dataSource is not null)
         {
-            if (npgsqlOptions.DataSource is null)
-            {
-                _provideClientCertificatesCallback = npgsqlOptions.ProvideClientCertificatesCallback;
-                _remoteCertificateValidationCallback = npgsqlOptions.RemoteCertificateValidationCallback;
-                _providePasswordCallback = npgsqlOptions.ProvidePasswordCallback;
-            }
-            else
-            {
-                _dataSource = npgsqlOptions.DataSource;
+            _dataSource = dataSource;
 
-                // We validate in NpgsqlOptionsExtensions.Validate that Datasource and these callbacks aren't specified together
-                Check.DebugAssert(npgsqlOptions.ProvideClientCertificatesCallback is null,
+#if DEBUG
+            // We validate in NpgsqlOptionsExtensions.Validate that DataSource and these callbacks aren't specified together
+            if (dependencies.ContextOptions.FindExtension<NpgsqlOptionsExtension>() is { } npgsqlOptions)
+            {
+                Check.DebugAssert(npgsqlOptions?.ProvideClientCertificatesCallback is null,
                     "Both DataSource and ProvideClientCertificatesCallback are non-null");
-                Check.DebugAssert(npgsqlOptions.RemoteCertificateValidationCallback is null,
+                Check.DebugAssert(npgsqlOptions?.RemoteCertificateValidationCallback is null,
                     "Both DataSource and RemoteCertificateValidationCallback are non-null");
-                Check.DebugAssert(npgsqlOptions.ProvidePasswordCallback is null,
+                Check.DebugAssert(npgsqlOptions?.ProvidePasswordCallback is null,
                     "Both DataSource and ProvidePasswordCallback are non-null");
             }
+#endif
+        }
+        else if (dependencies.ContextOptions.FindExtension<NpgsqlOptionsExtension>() is { } npgsqlOptions)
+        {
+            _provideClientCertificatesCallback = npgsqlOptions.ProvideClientCertificatesCallback;
+            _remoteCertificateValidationCallback = npgsqlOptions.RemoteCertificateValidationCallback;
+            _providePasswordCallback = npgsqlOptions.ProvidePasswordCallback;
         }
     }
 
@@ -170,7 +181,7 @@ public class NpgsqlRelationalConnection : RelationalConnection, INpgsqlRelationa
             Multiplexing = false
         }.ToString();
 
-        var adminNpgsqlOptions = npgsqlOptions.DataSource is not null
+        var adminNpgsqlOptions = _dataSource is not null
             ? npgsqlOptions.WithConnection(((NpgsqlConnection)CreateDbConnection()).CloneWith(adminConnectionString))
             : npgsqlOptions.Connection is not null
                 ? npgsqlOptions.WithConnection(DbConnection.CloneWith(adminConnectionString))
@@ -179,7 +190,8 @@ public class NpgsqlRelationalConnection : RelationalConnection, INpgsqlRelationa
         var optionsBuilder = new DbContextOptionsBuilder();
         ((IDbContextOptionsBuilderInfrastructure)optionsBuilder).AddOrUpdateExtension(adminNpgsqlOptions);
 
-        return new NpgsqlRelationalConnection(Dependencies with { ContextOptions = optionsBuilder.Options });    }
+        return new NpgsqlRelationalConnection(Dependencies with { ContextOptions = optionsBuilder.Options }, dataSource: null);
+    }
 
     /// <summary>
     ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
@@ -189,7 +201,9 @@ public class NpgsqlRelationalConnection : RelationalConnection, INpgsqlRelationa
     /// </summary>
     // Accessing Transaction.Current is expensive, so don't do it if Enlist is false in the connection string
     public override Transaction? CurrentAmbientTransaction
-        => ConnectionString is null || !ConnectionString.Contains("Enlist=false") ? Transaction.Current : null;
+        => ConnectionString is null || !ConnectionString.Contains("Enlist=false", StringComparison.InvariantCultureIgnoreCase)
+            ? Transaction.Current
+            : null;
 
     /// <summary>
     ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
@@ -208,6 +222,6 @@ public class NpgsqlRelationalConnection : RelationalConnection, INpgsqlRelationa
         var optionsBuilder = new DbContextOptionsBuilder();
         ((IDbContextOptionsBuilderInfrastructure)optionsBuilder).AddOrUpdateExtension(relationalOptions);
 
-        return new NpgsqlRelationalConnection(Dependencies with { ContextOptions = optionsBuilder.Options });
+        return new NpgsqlRelationalConnection(Dependencies with { ContextOptions = optionsBuilder.Options }, dataSource: null);
     }
 }

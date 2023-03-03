@@ -1,4 +1,6 @@
-﻿using Microsoft.EntityFrameworkCore.Diagnostics.Internal;
+﻿using System.Data.Common;
+using System.Transactions;
+using Microsoft.EntityFrameworkCore.Diagnostics.Internal;
 using Microsoft.EntityFrameworkCore.Infrastructure.Internal;
 using Microsoft.EntityFrameworkCore.Storage.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Diagnostics.Internal;
@@ -24,35 +26,59 @@ public class NpgsqlRelationalConnectionTest
     {
         using var dataSource = NpgsqlDataSource.Create("Host=FakeHost");
 
-        var options = new DbContextOptionsBuilder()
-            .UseNpgsql(dataSource)
-            .Options;
+        var serviceCollection = new ServiceCollection();
 
-        using var connection = CreateConnection(options);
+        serviceCollection
+            .AddNpgsqlDataSource("Host=FakeHost")
+            .AddDbContext<FakeDbContext>(o => o.UseNpgsql(dataSource));
 
-        Assert.Equal("Host=FakeHost", connection.ConnectionString);
+        using var serviceProvider = serviceCollection.BuildServiceProvider();
+
+        using var scope1 = serviceProvider.CreateScope();
+        var context1 = scope1.ServiceProvider.GetRequiredService<FakeDbContext>();
+        var relationalConnection1 = (NpgsqlRelationalConnection)context1.GetService<IRelationalConnection>()!;
+        Assert.Same(dataSource, relationalConnection1.DbDataSource);
+
+        var connection1 = context1.GetService<FakeDbContext>().Database.GetDbConnection();
+        Assert.Equal("Host=FakeHost", connection1.ConnectionString);
+
+        using var scope2 = serviceProvider.CreateScope();
+        var context2 = scope2.ServiceProvider.GetRequiredService<FakeDbContext>();
+        var relationalConnection2 = (NpgsqlRelationalConnection)context2.GetService<IRelationalConnection>()!;
+        Assert.Same(dataSource, relationalConnection2.DbDataSource);
+
+        var connection2 = context2.GetService<FakeDbContext>().Database.GetDbConnection();
+        Assert.Equal("Host=FakeHost", connection2.ConnectionString);
     }
 
     [Fact]
     public void Uses_DbDataSource_from_application_service_provider()
     {
-        using var dataSource = NpgsqlDataSource.Create("Host=FakeHost");
+        var serviceCollection = new ServiceCollection();
 
-        var appServiceProvider = new ServiceCollection()
+        serviceCollection
             .AddNpgsqlDataSource("Host=FakeHost")
-            .BuildServiceProvider();
+            .AddDbContext<FakeDbContext>(o => o.UseNpgsql());
 
-        var options = new DbContextOptionsBuilder()
-            .UseApplicationServiceProvider(appServiceProvider)
-            .UseNpgsql()
-            .Options;
+        using var serviceProvider = serviceCollection.BuildServiceProvider();
 
-        var npgsqlSingletonOptions = new NpgsqlSingletonOptions();
-        npgsqlSingletonOptions.Initialize(options);
+        var dataSource = serviceProvider.GetRequiredService<NpgsqlDataSource>();
 
-        using var connection = CreateConnection(options);
+        using var scope1 = serviceProvider.CreateScope();
+        var context1 = scope1.ServiceProvider.GetRequiredService<FakeDbContext>();
+        var relationalConnection1 = (NpgsqlRelationalConnection)context1.GetService<IRelationalConnection>()!;
+        Assert.Same(dataSource, relationalConnection1.DbDataSource);
 
-        Assert.Equal("Host=FakeHost", connection.ConnectionString);
+        var connection1 = context1.GetService<FakeDbContext>().Database.GetDbConnection();
+        Assert.Equal("Host=FakeHost", connection1.ConnectionString);
+
+        using var scope2 = serviceProvider.CreateScope();
+        var context2 = scope2.ServiceProvider.GetRequiredService<FakeDbContext>();
+        var relationalConnection2 = (NpgsqlRelationalConnection)context2.GetService<IRelationalConnection>()!;
+        Assert.Same(dataSource, relationalConnection2.DbDataSource);
+
+        var connection2 = context2.GetService<FakeDbContext>().Database.GetDbConnection();
+        Assert.Equal("Host=FakeHost", connection2.ConnectionString);
     }
 
     [Fact]
@@ -79,6 +105,44 @@ public class NpgsqlRelationalConnectionTest
         Assert.Equal(@"Host=localhost;Database=template0;Username=some_user;Password=some_password;Pooling=False;Multiplexing=False", master.ConnectionString);
     }
 
+    [Theory]
+    [InlineData("false")]
+    [InlineData("False")]
+    [InlineData("FALSE")]
+    public void CurrentAmbientTransaction_returns_null_with_enlist_set_to_false(string falseValue)
+    {
+        var options = new DbContextOptionsBuilder()
+            .UseNpgsql(
+                @"Host=localhost;Database=NpgsqlConnectionTest;Username=some_user;Password=some_password;Enlist=" + falseValue)
+            .Options;
+
+        Transaction.Current = new CommittableTransaction();
+
+        using var connection = CreateConnection(options);
+        Assert.Null(connection.CurrentAmbientTransaction);
+
+        Transaction.Current = null;
+    }
+
+    [Theory]
+    [InlineData(";Enlist=true")]
+    [InlineData("")] // Enlist is true by default
+    public void CurrentAmbientTransaction_returns_transaction_with_enlist_enabled(string enlist)
+    {
+        var options = new DbContextOptionsBuilder()
+            .UseNpgsql(
+                @"Host=localhost;Database=NpgsqlConnectionTest;Username=some_user;Password=some_password" + enlist)
+            .Options;
+
+        var transaction = new CommittableTransaction();
+        Transaction.Current = transaction;
+
+        using var connection = CreateConnection(options);
+        Assert.Equal(transaction, connection.CurrentAmbientTransaction);
+
+        Transaction.Current = null;
+    }
+
     [ConditionalFact]
     public void CloneWith_with_connection_and_connection_string()
     {
@@ -94,7 +158,7 @@ public class NpgsqlRelationalConnectionTest
         Assert.Equal("Host=localhost;Database=DummyDatabase;Application Name=foo", clone.ConnectionString);
     }
 
-    public static NpgsqlRelationalConnection CreateConnection(DbContextOptions options = null)
+    public static NpgsqlRelationalConnection CreateConnection(DbContextOptions options = null, DbDataSource dataSource = null)
     {
         options ??= new DbContextOptionsBuilder()
             .UseNpgsql(@"Host=localhost;Database=NpgsqlConnectionTest;Username=some_user;Password=some_password")
@@ -104,6 +168,9 @@ public class NpgsqlRelationalConnectionTest
         {
             extension.Validate(options);
         }
+
+        var singletonOptions = new NpgsqlSingletonOptions();
+        singletonOptions.Initialize(options);
 
         return new NpgsqlRelationalConnection(
             new RelationalConnectionDependencies(
@@ -134,7 +201,8 @@ public class NpgsqlRelationalConnectionTest
                             TestServiceFactory.Instance.Create<RelationalTypeMappingSourceDependencies>(),
                             new NpgsqlSqlGenerationHelper(new RelationalSqlGenerationHelperDependencies()),
                             new NpgsqlSingletonOptions()),
-                        new ExceptionDetector()))));
+                        new ExceptionDetector()))),
+            singletonOptions);
     }
 
     private const string ConnectionString = "Fake Connection String";
@@ -154,5 +222,13 @@ public class NpgsqlRelationalConnectionTest
 
     private class FakeDbContext : DbContext
     {
+        public FakeDbContext()
+        {
+        }
+
+        public FakeDbContext(DbContextOptions<FakeDbContext> options)
+            : base(options)
+        {
+        }
     }
 }
